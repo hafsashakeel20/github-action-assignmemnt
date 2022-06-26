@@ -12,7 +12,7 @@ on:
 #   value: ${{ secrets.SECRET_VALUE }}
 
 jobs:
-  ubuntu-print:
+  test-job:
     runs-on: ubuntu-latest
     # needs: env-var-job
 
@@ -27,3 +27,36 @@ jobs:
       #   run: |
       #     echo Add other actions to build,
       #     echo test, and deploy your project!!
+
+  tf-run:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ./scripts/Test_Module
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: hashicorp/setup-terraform@v2
+      
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: us-east-1
+      
+      - name: tf-exec
+        id: init
+        run: 
+          #cd ./scripts/Test_Module
+          terraform init
+
+      - name: tf-plan
+        id: plan
+        run: terraform plan -no-color
+
+      - run: echo ${{ steps.plan.outputs.stdout }}
+      # - run: echo ${{ steps.plan.outputs.stderr }}
+      # - run: echo ${{ steps.plan.outputs.exitcode }}
